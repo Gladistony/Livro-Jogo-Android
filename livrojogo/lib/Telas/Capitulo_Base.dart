@@ -1,22 +1,17 @@
 import "package:flutter/material.dart";
 import "package:livrojogo/Modelos/Gerenciador_Historia.dart";
 
-class CapituloBase extends StatelessWidget {
+import "../data/data_sqlite.dart";
+
+class CapituloBase extends StatefulWidget {
   CapituloBase({super.key});
 
-  final List<GerenciadorModelos> ListaHistoria = [
-    GerenciadorModelos(
-        Id: "ID001",
-        Nome: "Fuga da ilha",
-        NPCs: List.empty(),
-        Capilutos: List.empty()),
-    GerenciadorModelos(
-        Id: "ID002",
-        Nome: "O grande roubo",
-        NPCs: List.empty(),
-        Capilutos: List.empty())
-  ];
+  @override
+  State<CapituloBase> createState() => _CapituloBaseState();
+}
 
+class _CapituloBaseState extends State<CapituloBase> {
+  // List<GerenciadorModelos> ListaHistoria = [
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +26,13 @@ class CapituloBase extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print("Teste");
+          //print("Teste");
+          DataSqliteDataSource().create(GerenciadorModelos(
+              Id: 1,
+              Nome: "Fuga da ilha",
+              NPCs: List.empty(),
+              Capilutos: List.empty()));
+          setState(() {});
         },
         child: const Icon(Icons.add),
       ),
@@ -42,11 +43,30 @@ class CapituloBase extends StatelessWidget {
             color: const Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(16)),
         child: ListView(
-          children: List.generate(ListaHistoria.length, (index) {
-            GerenciadorModelos modeloAtual = ListaHistoria[index];
-            return ElevatedButton(
-                onPressed: () {}, child: Text(modeloAtual.Nome));
-          }),
+          // children: List.generate(ListaHistoria.length, (index) {
+          //   GerenciadorModelos modeloAtual = ListaHistoria[index];
+          //   return ElevatedButton(
+          //       onPressed: () {}, child: Text(modeloAtual.Nome));}
+          children: [
+            FutureBuilder(
+              future: DataSqliteDataSource().getAll(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<List<GerenciadorModelos>> snapshot) {
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        GerenciadorModelos modeloAtual = snapshot.data![index];
+                        return ElevatedButton(
+                            onPressed: () {}, child: Text(modeloAtual.Nome));
+                      });
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            )
+          ],
         ),
       ),
     );
